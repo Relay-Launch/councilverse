@@ -1,0 +1,44 @@
+{
+  "name": "@relaylaunch/councilverse-voting",
+  "version": "1.0.0",
+  "description": "Three-valued voting for AI council debates. KEEP/REFUSE/ABSTAIN with quality-weighted scoring.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "voting",
+    "three-valued",
+    "council",
+    "debate",
+    "councilverse",
+    "relaylaunch",
+    "multi-agent",
+    "decision-making",
+    "quality-scoring"
+  ],
+  "author": "RelayLaunch LLC <hello@relaylaunch.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/Relay-Launch/councilverse/tree/main/packages/voting",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Relay-Launch/councilverse",
+    "directory": "packages/voting"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "name": "@relaylaunch/councilverse-formations",
+  "version": "1.0.1",
+  "description": "15 structured AI council formations for multi-agent debate. Strategy Room, Tribunal, Risk Council, Due Diligence, and more.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "multi-agent",
+    "council",
+    "debate",
+    "formations",
+    "councilverse",
+    "relaylaunch",
+    "llm",
+    "a2a",
+    "mcp",
+    "due-diligence",
+    "risk-analysis",
+    "strategy",
+    "decision-making"
+  ],
+  "author": "RelayLaunch LLC <hello@relaylaunch.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/Relay-Launch/councilverse/tree/main/packages/formations",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Relay-Launch/councilverse",
+    "directory": "packages/formations"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "create-councilverse",
+  "version": "1.0.1",
+  "description": "Scaffold a CouncilVerse multi-agent council in 60 seconds. Works with any LLM provider.",
+  "bin": {
+    "create-councilverse": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs --dts --target node18",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "create",
+    "scaffold",
+    "ai",
+    "multi-agent",
+    "council",
+    "councilverse",
+    "debate",
+    "relaylaunch"
+  ],
+  "author": "RelayLaunch LLC <hello@relaylaunch.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/Relay-Launch/councilverse/tree/main/packages/create-councilverse",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Relay-Launch/councilverse",
+    "directory": "packages/create-councilverse"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0"
+  }
+}
