@@ -308,6 +308,12 @@ export function getFormationsByMethodology(methodology: string): Formation[] {
   );
 }
 
+const ANTI_SYCOPHANCY_RULES = [
+  "6. NEVER use hollow agreement phrases: 'I agree', 'exactly right', 'great point', 'well said', 'as you mentioned'",
+  "7. If you change your position between rounds, you MUST state what new evidence caused the change",
+  "8. Agreeing with the majority without adding new evidence is a failure — find what they missed",
+];
+
 export function buildSystemPrompt(formation: Formation, roleIndex: number): string {
   const role = formation.roles[roleIndex];
   if (!role) throw new Error(`Role index ${roleIndex} out of range for ${formation.id}`);
@@ -323,7 +329,67 @@ export function buildSystemPrompt(formation: Formation, roleIndex: number): stri
     "3. Acknowledge strong counterarguments from other roles",
     "4. If you disagree with the emerging consensus, say so explicitly",
     "5. End with a clear position statement and confidence level (0.0-1.0)",
+    ...ANTI_SYCOPHANCY_RULES,
   ].join("\n");
+}
+
+export interface FlipRateEntry {
+  agentId: string;
+  round: number;
+  previousPosition: string;
+  newPosition: string;
+  evidenceCited: boolean;
+}
+
+export function detectFlips(
+  rounds: { agentId: string; round: number; position: string; reasoning: string }[],
+): FlipRateEntry[] {
+  const flips: FlipRateEntry[] = [];
+  const byAgent = new Map<string, typeof rounds>();
+
+  for (const entry of rounds) {
+    const existing = byAgent.get(entry.agentId) || [];
+    existing.push(entry);
+    byAgent.set(entry.agentId, existing);
+  }
+
+  for (const [agentId, entries] of byAgent) {
+    const sorted = entries.sort((a, b) => a.round - b.round);
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1];
+      const curr = sorted[i];
+      if (prev.position !== curr.position) {
+        const lower = curr.reasoning.toLowerCase();
+        const evidenceCited =
+          lower.includes("because") ||
+          lower.includes("evidence") ||
+          lower.includes("data shows") ||
+          lower.includes("however") ||
+          /\d+%/.test(curr.reasoning);
+
+        flips.push({
+          agentId,
+          round: curr.round,
+          previousPosition: prev.position,
+          newPosition: curr.position,
+          evidenceCited,
+        });
+      }
+    }
+  }
+
+  return flips;
+}
+
+export function calculateFlipRate(
+  flips: FlipRateEntry[],
+): { totalFlips: number; unjustifiedFlips: number; flipRate: number } {
+  const unjustified = flips.filter((f) => !f.evidenceCited);
+  return {
+    totalFlips: flips.length,
+    unjustifiedFlips: unjustified.length,
+    flipRate: flips.length > 0 ? unjustified.length / flips.length : 0,
+  };
 }
 
 export function buildSynthesisPrompt(

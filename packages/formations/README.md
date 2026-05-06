@@ -13,7 +13,7 @@ npm install @relaylaunch/councilverse-formations
 ```typescript
 import { getFormation, listFormations, buildSystemPrompt, buildSynthesisPrompt } from '@relaylaunch/councilverse-formations';
 
-// List all 15 formations
+// List all 17 formations
 const formations = listFormations();
 
 // Get a specific formation

@@ -14,7 +14,7 @@
 
 Most multi-agent systems treat AI like a panel of yes-men. CouncilVerse structures debates so agents argue from different methodologies, vote with three-valued positions (KEEP / REFUSE / ABSTAIN), and produce auditable verdicts scored by argument quality -- not headcount.
 
-**15 formations. 3 npm packages. Works with any LLM provider.**
+**17 formations. 3 npm packages. Works with any LLM provider.**
 
 ## Quick Start
 

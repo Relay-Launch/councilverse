@@ -181,3 +181,61 @@ export function buildAgentVote(
     argument_quality: scoreArgumentQuality(text),
   };
 }
+
+export interface AnonymizedResponse {
+  label: string;
+  response: string;
+  originalIndex: number;
+}
+
+export interface AnonymizedSet {
+  responses: AnonymizedResponse[];
+  keyMap: Map<string, number>;
+}
+
+const LABELS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+export function anonymizeResponses(
+  responses: { role: string; response: string }[],
+): AnonymizedSet {
+  const shuffled = responses.map((r, i) => ({ ...r, originalIndex: i }));
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  const keyMap = new Map<string, number>();
+  const anonymized = shuffled.map((r, i) => {
+    const label = `Response ${LABELS[i] || String(i + 1)}`;
+    keyMap.set(label, r.originalIndex);
+    return { label, response: r.response, originalIndex: r.originalIndex };
+  });
+
+  return { responses: anonymized, keyMap };
+}
+
+export function buildAnonymizedReviewPrompt(
+  question: string,
+  anonymizedSet: AnonymizedSet,
+): string {
+  const block = anonymizedSet.responses
+    .map((r) => `--- ${r.label} ---\n${r.response}`)
+    .join("\n\n");
+
+  return [
+    "You are an impartial peer reviewer. The following responses were submitted anonymously to a council debate.",
+    "You do NOT know which model or role produced each response.",
+    "",
+    `Question: "${question}"`,
+    "",
+    block,
+    "",
+    "For each response, evaluate:",
+    "1. EVIDENCE QUALITY — does it cite specific data, examples, or reasoning?",
+    "2. LOGICAL COHERENCE — is the argument internally consistent?",
+    "3. NOVELTY — does it surface insights the others miss?",
+    "4. BIAS INDICATORS — does it defer excessively or hedge without substance?",
+    "",
+    "Then rank them best-to-worst with a 1-sentence justification per ranking.",
+  ].join("\n");
+}
