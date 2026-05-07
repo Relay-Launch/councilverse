@@ -1,0 +1,22 @@
+{
+  "name": "councilverse",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CouncilVerse — Multi-agent AI council reasoning engine (monorepo)",
+  "workspaces": [
+    "packages/formations",
+    "packages/voting",
+    "packages/create-councilverse"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "clean": "rm -rf packages/*/dist",
+    "prepublish": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Relay-Launch/councilverse"
+  },
+  "author": "RelayLaunch LLC <hello@relaylaunch.com>",
+  "license": "MIT"
+}
