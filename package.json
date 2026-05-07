@@ -10,6 +10,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "clean": "rm -rf packages/*/dist",
     "prepublish": "npm run build"
   },
@@ -18,5 +20,8 @@
     "url": "https://github.com/Relay-Launch/councilverse"
   },
   "author": "RelayLaunch LLC <hello@relaylaunch.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vitest": "^4.1.5"
+  }
 }
