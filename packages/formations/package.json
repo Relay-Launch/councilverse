@@ -1,7 +1,7 @@
 {
   "name": "@relaylaunch/councilverse-formations",
   "version": "1.0.1",
-  "description": "15 structured AI council formations for multi-agent debate. Strategy Room, Tribunal, Risk Council, Due Diligence, and more.",
+  "description": "15 portable AI council formations for multi-agent debate. Strategy Room, Tribunal, Risk Council, Due Diligence, and more. Part of the 17 council modes in the CouncilVerse ecosystem.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
