@@ -2,6 +2,9 @@
   "name": "councilverse",
   "version": "0.0.0",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "description": "CouncilVerse — Multi-agent AI council reasoning engine (monorepo)",
   "workspaces": [
     "packages/formations",
