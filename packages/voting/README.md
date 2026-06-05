@@ -2,7 +2,7 @@
 
 Three-valued voting for AI council debates. Agents cast KEEP, REFUSE, or ABSTAIN instead of forced binary positions. Verdicts determined by argument quality, not headcount.
 
-Based on the CAMP paper (arXiv:2604.00085).
+Inspired by quality-weighted multi-agent voting research and tuned for practical decision reviews.
 
 ## Install
 

@@ -44,6 +44,18 @@ describe("create-councilverse CLI", () => {
     expect(content).toContain("buildSystemPrompt");
   });
 
+  it("generates code that matches the public formation API", () => {
+    const content = readFileSync(join(FIXTURES_DIR, "src", "council.ts"), "utf-8");
+    expect(content).toContain("for (let i = 0; i < formation.roles.length; i++)");
+    expect(content).toContain("isValidFormation(formationId)");
+    expect(content).toContain("const role = formation.roles[i]");
+    expect(content).toContain("buildSystemPrompt(formation, i)");
+    expect(content).toContain("role.title");
+    expect(content).not.toContain("formation.agents.map");
+    expect(content).not.toContain("role.name");
+    expect(content).not.toContain("role.role");
+  });
+
   it("creates .env.example with ANTHROPIC_API_KEY", () => {
     const env = readFileSync(join(FIXTURES_DIR, ".env.example"), "utf-8");
     expect(env).toContain("ANTHROPIC_API_KEY");

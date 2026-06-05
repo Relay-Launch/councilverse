@@ -37,24 +37,24 @@ async function main() {
   }
 
   const formation = getFormation(FORMATION_ID);
-  const systemPrompt = buildSystemPrompt(FORMATION_ID);
 
   console.log(`\nFormation: ${formation.name}`);
   console.log(`Question: ${QUESTION}\n`);
   console.log("--- Agent Responses ---\n");
 
-  const responses: { agentName: string; response: string }[] = [];
+  const responses: { role: string; response: string }[] = [];
 
-  for (const agent of formation.agents) {
-    const agentSystem = `${systemPrompt}\n\nYou are: ${agent.name}. ${agent.role}`;
+  for (let i = 0; i < formation.roles.length; i++) {
+    const role = formation.roles[i];
+    const agentSystem = buildSystemPrompt(formation, i);
     const response = await callClaude(agentSystem, QUESTION);
-    responses.push({ agentName: agent.name, response });
-    console.log(`[${agent.name}]: ${response.slice(0, 200)}...\n`);
+    responses.push({ role: role.title, response });
+    console.log(`[${role.title}]: ${response.slice(0, 200)}...\n`);
   }
 
   // Vote
   const votes = responses.map((r, i) =>
-    buildAgentVote(`agent-${i}`, r.agentName, "council-1", r.response)
+    buildAgentVote(`agent-${i}`, r.role, "council-1", r.response)
   );
   const result = tallyVotes(votes);
 
@@ -65,7 +65,7 @@ async function main() {
   console.log(`Votes: ${result.total_voters} (${result.abstain_count} abstained)\n`);
 
   // Synthesize
-  const synthesisPrompt = buildSynthesisPrompt(FORMATION_ID, responses);
+  const synthesisPrompt = buildSynthesisPrompt(formation, QUESTION, responses);
   const verdict = await callClaude(synthesisPrompt, QUESTION);
 
   console.log("--- Verdict ---\n");
