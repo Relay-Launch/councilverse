@@ -29,6 +29,21 @@ const synthesisPrompt = buildSynthesisPrompt(strategyRoom, 'What should we do ne
 ]);
 ```
 
+## Embeddable Payload
+
+Use the minimal embed API when you want a website, docs page, or product surface to render a CouncilVerse debate shell without binding to any specific LLM provider.
+
+```bash
+node --input-type=module -e "import { buildCouncilEmbedPayload } from '@relaylaunch/councilverse-formations'; console.log(JSON.stringify(buildCouncilEmbedPayload('technical-review', 'Should we ship the embeddable verdict widget?'), null, 2));"
+```
+
+The payload includes:
+
+- `schemaVersion: "councilverse.embed.v1"`
+- formation metadata and default round count
+- one provider-agnostic system prompt per role
+- a synthesis prompt ready for your own model gateway
+
 ## Formations
 
 | ID | Name | Methodology |

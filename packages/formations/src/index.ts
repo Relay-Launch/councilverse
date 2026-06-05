@@ -308,6 +308,24 @@ export function getFormationsByMethodology(methodology: string): Formation[] {
   );
 }
 
+export interface CouncilEmbedAgent {
+  id: string;
+  title: string;
+  perspective: string;
+  systemPrompt: string;
+}
+
+export interface CouncilEmbedPayload {
+  schemaVersion: "councilverse.embed.v1";
+  formationId: FormationId;
+  formationName: string;
+  methodology: string;
+  question: string;
+  defaultRounds: number;
+  agents: CouncilEmbedAgent[];
+  synthesisPrompt: string;
+}
+
 const ANTI_SYCOPHANCY_RULES = [
   "6. NEVER use hollow agreement phrases: 'I agree', 'exactly right', 'great point', 'well said', 'as you mentioned'",
   "7. If you change your position between rounds, you MUST state what new evidence caused the change",
@@ -331,6 +349,33 @@ export function buildSystemPrompt(formation: Formation, roleIndex: number): stri
     "5. End with a clear position statement and confidence level (0.0-1.0)",
     ...ANTI_SYCOPHANCY_RULES,
   ].join("\n");
+}
+
+export function buildCouncilEmbedPayload(
+  formationId: FormationId,
+  question: string,
+): CouncilEmbedPayload {
+  const trimmedQuestion = question.trim();
+  if (!trimmedQuestion) {
+    throw new Error("Embed question is required.");
+  }
+
+  const formation = getFormation(formationId);
+  return {
+    schemaVersion: "councilverse.embed.v1",
+    formationId: formation.id,
+    formationName: formation.name,
+    methodology: formation.methodology,
+    question: trimmedQuestion,
+    defaultRounds: formation.defaultRounds,
+    agents: formation.roles.map((role, index) => ({
+      id: `${formation.id}-agent-${index + 1}`,
+      title: role.title,
+      perspective: role.perspective,
+      systemPrompt: buildSystemPrompt(formation, index),
+    })),
+    synthesisPrompt: buildSynthesisPrompt(formation, trimmedQuestion, []),
+  };
 }
 
 export interface FlipRateEntry {
