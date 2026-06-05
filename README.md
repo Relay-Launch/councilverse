@@ -1,6 +1,6 @@
 <p align="center">
   <strong>CouncilVerse</strong><br>
-  Open-source AI council formations for multi-agent debate
+  AI agents that disagree on purpose
 </p>
 
 <p align="center">
@@ -12,9 +12,9 @@
 
 ---
 
-Most multi-agent systems treat AI like a panel of yes-men. CouncilVerse structures debates so agents argue from different methodologies, vote with three-valued positions (KEEP / REFUSE / ABSTAIN), and produce auditable verdicts scored by argument quality -- not headcount.
+Most multi-agent systems train AI agents to cooperate. CouncilVerse does the opposite when the decision matters: agents argue from different methods, vote yes, no, or "not my area," and produce verdicts scored by argument quality, not headcount.
 
-**17 formations. 3 npm packages. Works with any LLM provider.**
+**15 council presets. 3 npm packages. Works with any LLM provider.**
 
 ## Quick Start
 
@@ -70,16 +70,18 @@ npx tsx src/council.ts
 import { getFormation, buildSystemPrompt, buildSynthesisPrompt } from '@relaylaunch/councilverse-formations';
 import { buildAgentVote, tallyVotes } from '@relaylaunch/councilverse-voting';
 
-// 1. Get a formation
+// 1. Get a council preset
 const formation = getFormation('strategy-room');
 
-// 2. Build system prompts for each agent
-const systemPrompt = buildSystemPrompt('strategy-room');
+// 2. Build one system prompt per role
+const systemPrompts = formation.roles.map((role, roleIndex) =>
+  buildSystemPrompt(formation, roleIndex)
+);
 
 // 3. Send to your LLM provider (any provider works)
 const agentResponses = await Promise.all(
-  formation.agents.map(agent =>
-    yourLLMCall({ system: systemPrompt, user: question })
+  formation.roles.map((role, roleIndex) =>
+    yourLLMCall({ system: systemPrompts[roleIndex], user: question })
   )
 );
 
@@ -87,7 +89,7 @@ const agentResponses = await Promise.all(
 const votes = agentResponses.map((response, i) =>
   buildAgentVote(
     `agent-${i}`,
-    formation.agents[i].name,
+    formation.roles[i].title,
     'council-1',
     response
   )
@@ -98,7 +100,14 @@ const result = tallyVotes(votes);
 // result.method: "strong_consensus" | "quality_weighted" | "lead_fallback"
 
 // 5. Synthesize the verdict
-const synthesisPrompt = buildSynthesisPrompt('strategy-room', agentResponses);
+const synthesisPrompt = buildSynthesisPrompt(
+  formation,
+  question,
+  agentResponses.map((response, i) => ({
+    role: formation.roles[i].title,
+    response,
+  }))
+);
 const verdict = await yourLLMCall({ system: synthesisPrompt });
 ```
 
@@ -115,13 +124,13 @@ Verdicts are determined by argument quality, not headcount:
 2. **Quality weighted** -- `argument_quality * confidence`, margin >= 15%
 3. **Lead fallback** -- deadlock triggers formation lead arbitration
 
-Based on the CAMP paper (arXiv:2604.00085).
+Inspired by quality-weighted multi-agent voting research and tuned for practical decision reviews.
 
 ## Protocol Support
 
 CouncilVerse formations are designed for interoperability:
 
-- **Google A2A** -- formations map to Agent Card skills
+- **Google A2A** -- council presets map to Agent Card skills
 - **MCP** -- usable as MCP tool definitions
 - **Webhooks** -- HMAC-SHA256 signed verdict events
 - **Embed** -- iframe-friendly verdict widgets
@@ -133,10 +142,10 @@ These open-source packages power [Relay Deck](https://deck.relaylaunch.com), whi
 - Persistent verdict library with precedent search
 - Reasoning trace audit trail (Langfuse)
 - Embeddable verdict widgets
-- Sprint contracts and durable debate state
+- Durable debate state and owner approval checkpoints
 - Heterogeneous model assignment (different LLMs per agent)
 - EU AI Act compliance manifests
-- BYOK (Bring Your Own Key) model
+- Use your own API keys, so no model traffic has to pass through RelayLaunch
 
 [Try the playground](https://deck.relaylaunch.com/playground) | [Sign up for Relay Deck](https://deck.relaylaunch.com/signup)
 

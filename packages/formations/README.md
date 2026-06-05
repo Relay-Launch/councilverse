@@ -13,19 +13,19 @@ npm install @relaylaunch/councilverse-formations
 ```typescript
 import { getFormation, listFormations, buildSystemPrompt, buildSynthesisPrompt } from '@relaylaunch/councilverse-formations';
 
-// List all 17 formations
+// List all 15 council presets
 const formations = listFormations();
 
 // Get a specific formation
 const strategyRoom = getFormation('strategy-room');
 
-// Build system prompt for an agent
-const systemPrompt = buildSystemPrompt('strategy-room');
+// Build system prompt for the first agent role
+const systemPrompt = buildSystemPrompt(strategyRoom, 0);
 
 // Build synthesis prompt after agents respond
-const synthesisPrompt = buildSynthesisPrompt('strategy-room', [
-  { agentName: 'Intelligence Officer', response: '...' },
-  { agentName: 'Strategist', response: '...' },
+const synthesisPrompt = buildSynthesisPrompt(strategyRoom, 'What should we do next?', [
+  { role: 'Observer', response: '...' },
+  { role: 'Strategist', response: '...' },
 ]);
 ```
 
@@ -51,11 +51,11 @@ const synthesisPrompt = buildSynthesisPrompt('strategy-room', [
 
 ## Protocol Support
 
-- **Google A2A** — formations map to Agent Card skills
-- **MCP** — usable as MCP tool definitions
-- **Webhooks** — HMAC-SHA256 signed verdict events
-- **Embed** — iframe-friendly verdict widgets
+- **Google A2A** - council presets map to Agent Card skills
+- **MCP** - usable as MCP tool definitions
+- **Webhooks** - HMAC-SHA256 signed verdict events
+- **Embed** - iframe-friendly verdict widgets
 
 ## License
 
-MIT — RelayLaunch LLC
+MIT -- RelayLaunch LLC

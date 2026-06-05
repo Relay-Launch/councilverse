@@ -86,10 +86,10 @@ function main() {
     join(projectDir, "src", "council.ts"),
     `import {
   getFormation,
+  isValidFormation,
   buildSystemPrompt,
   buildSynthesisPrompt,
   listFormations,
-  type Formation,
 } from "@relaylaunch/councilverse-formations";
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -99,13 +99,14 @@ const FORMATION_ID = process.argv[2] || "strategy-room";
 const QUESTION = process.argv[3] || "Should we expand into the European market in Q3?";
 
 async function runCouncil(formationId: string, question: string) {
-  const formation = getFormation(formationId);
-  if (!formation) {
+  if (!isValidFormation(formationId)) {
     console.error(\`Unknown formation: \${formationId}\`);
     console.log("Available formations:");
     listFormations().forEach((f) => console.log(\`  - \${f.id}: \${f.name} (\${f.methodology})\`));
     process.exit(1);
   }
+
+  const formation = getFormation(formationId);
 
   console.log(\`\\n=== \${formation.name} ===\`);
   console.log(\`Methodology: \${formation.methodology}\`);
@@ -115,7 +116,7 @@ async function runCouncil(formationId: string, question: string) {
 
   for (let i = 0; i < formation.roles.length; i++) {
     const role = formation.roles[i];
-    console.log(\`[\${role.name}] thinking...\`);
+    console.log(\`[\${role.title}] thinking...\`);
 
     const systemPrompt = buildSystemPrompt(formation, i);
     const msg = await client.messages.create({
@@ -126,8 +127,8 @@ async function runCouncil(formationId: string, question: string) {
     });
 
     const text = msg.content[0].type === "text" ? msg.content[0].text : "";
-    responses.push({ role: role.name, perspective: role.perspective, response: text });
-    console.log(\`[\${role.name}] \${text.slice(0, 120)}...\\n\`);
+    responses.push({ role: role.title, perspective: role.perspective, response: text });
+    console.log(\`[\${role.title}] \${text.slice(0, 120)}...\\n\`);
   }
 
   console.log("\\n=== Synthesis ===\\n");
@@ -190,7 +191,7 @@ Powered by [CouncilVerse](https://relaylaunch.com/councilverse) by RelayLaunch L
   console.log('  npm run debate -- strategy-room "Your question here"');
   console.log("\nAvailable formations:");
   FORMATIONS.forEach((f) => console.log(`  - ${f}`));
-  console.log("\nPowered by CouncilVerse — https://relaylaunch.com/councilverse\n");
+  console.log("\nPowered by CouncilVerse -- https://relaylaunch.com/councilverse\n");
 }
 
 main();

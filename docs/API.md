@@ -50,7 +50,7 @@ console.log(f.roles.length); // 5
 
 #### `listFormations(): Formation[]`
 
-Returns all 17 formations.
+Returns all 15 formations.
 
 #### `isValidFormation(id: string): id is FormationId`
 

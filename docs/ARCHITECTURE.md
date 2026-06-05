@@ -6,7 +6,7 @@
 councilverse/
 ├── packages/
 │   ├── formations/          # @relaylaunch/councilverse-formations
-│   │   └── src/index.ts     # 17 formation definitions + prompt builders
+│   │   └── src/index.ts     # 15 formation definitions + prompt builders
 │   ├── voting/              # @relaylaunch/councilverse-voting
 │   │   └── src/index.ts     # Three-valued voting + quality scoring
 │   └── create-councilverse/ # create-councilverse CLI
