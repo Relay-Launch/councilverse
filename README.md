@@ -12,11 +12,35 @@
 
 ---
 
-Most multi-agent systems train AI agents to cooperate. CouncilVerse does the opposite when the decision matters: agents argue from different methods, vote yes, no, or "not my area," and produce verdicts scored by argument quality, not headcount.
+Use CouncilVerse when one AI answer is too smooth.
 
-**15 council presets. 3 npm packages. Works with any LLM provider.**
+It gives each AI agent a different job, forces them to argue from that job, then scores the verdict by reasoning quality instead of a simple headcount.
 
-## Quick Start
+**In plain English:** you ask one question, several agents disagree, then you get a verdict you can audit.
+
+## Run the local example
+
+No API key needed:
+
+```bash
+npm install
+npm run build
+npm run example:local
+```
+
+Expected shape:
+
+```text
+Council: Strategy Room
+Question: Should a repair shop follow up on stale estimates every morning?
+Verdict: keep
+Method: strong_consensus
+Agents: Observer, Orienter, Strategist
+```
+
+The example uses canned responses so you can prove the package works before connecting any model provider.
+
+## Start a real council project
 
 ```bash
 npx create-councilverse my-council
@@ -24,128 +48,108 @@ cd my-council
 npm install
 ```
 
-Add your API key to `.env`:
+Add your model key:
 
-```
+```bash
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-Run a debate:
+Run a council:
 
 ```bash
-npx tsx src/council.ts
+npm run debate -- strategy-room "Should we expand into Europe?"
 ```
 
 ## Packages
 
-| Package | Description | Install |
-|---------|-------------|---------|
-| [`@relaylaunch/councilverse-formations`](packages/formations) | 15 structured debate methodologies | `npm i @relaylaunch/councilverse-formations` |
-| [`@relaylaunch/councilverse-voting`](packages/voting) | Three-valued voting with quality scoring | `npm i @relaylaunch/councilverse-voting` |
-| [`create-councilverse`](packages/create-councilverse) | Project scaffolding CLI | `npx create-councilverse` |
+| Package | What it does | Install |
+|---------|--------------|---------|
+| [`@relaylaunch/councilverse-formations`](packages/formations) | 15 ready-made council presets with roles and prompts | `npm i @relaylaunch/councilverse-formations` |
+| [`@relaylaunch/councilverse-voting`](packages/voting) | Turns agent responses into keep, refuse, or abstain verdicts | `npm i @relaylaunch/councilverse-voting` |
+| [`create-councilverse`](packages/create-councilverse) | Creates a working starter project | `npx create-councilverse` |
 
-## Formations
+## What the presets are for
 
-| ID | Name | Methodology |
-|----|------|-------------|
-| strategy-room | Strategy Room | OODA Loop |
-| tribunal | The Tribunal | Legal Framework |
-| innovation-lab | Innovation Lab | Design Thinking |
-| risk-council | Risk Council | Monte Carlo |
-| due-diligence | Due Diligence Council | M&A Framework |
-| ethics-board | Ethics Board | Kantian + Utilitarian |
-| growth-council | Growth Council | AARRR Pirate Metrics |
-| technical-review | Technical Review Board | ADR |
-| market-intelligence | Market Intelligence | Porter's Five Forces |
-| crisis-response | Crisis Response Team | Incident Command |
-| investment-committee | Investment Committee | DCF + Comparables |
-| quality-assurance | Quality Assurance | Six Sigma DMAIC |
-| research-council | Research Council | Scientific Method |
-| competitive-analysis | Competitive Analysis | Game Theory |
-| policy-council | Policy Council | Regulatory Impact |
+| ID | Use it when you need |
+|----|----------------------|
+| strategy-room | A practical business strategy call |
+| tribunal | A hard yes/no challenge with a case for and against |
+| innovation-lab | New ideas without skipping reality checks |
+| risk-council | Risk, downside, and mitigation planning |
+| due-diligence | Investment, acquisition, or vendor review |
+| ethics-board | Human impact and rights review |
+| growth-council | Acquisition, activation, retention, referral, and revenue |
+| technical-review | Architecture and implementation tradeoffs |
+| market-intelligence | Competitive pressure and market structure |
+| crisis-response | Incident response and fast triage |
+| investment-committee | Investment quality and downside review |
+| quality-assurance | Process defects and improvement plans |
+| research-council | Evidence review and hypothesis testing |
+| competitive-analysis | Competitor moves and game theory |
+| policy-council | Regulatory or policy impact review |
 
-## Usage
+## Use the libraries directly
 
 ```typescript
-import { getFormation, buildSystemPrompt, buildSynthesisPrompt } from '@relaylaunch/councilverse-formations';
+import { buildCouncilEmbedPayload } from '@relaylaunch/councilverse-formations';
 import { buildAgentVote, tallyVotes } from '@relaylaunch/councilverse-voting';
 
-// 1. Get a council preset
-const formation = getFormation('strategy-room');
-
-// 2. Build one system prompt per role
-const systemPrompts = formation.roles.map((role, roleIndex) =>
-  buildSystemPrompt(formation, roleIndex)
+const payload = buildCouncilEmbedPayload(
+  'strategy-room',
+  'Should a repair shop follow up on stale estimates every morning?'
 );
 
-// 3. Send to your LLM provider (any provider works)
-const agentResponses = await Promise.all(
-  formation.roles.map((role, roleIndex) =>
-    yourLLMCall({ system: systemPrompts[roleIndex], user: question })
-  )
-);
+const responses = [
+  'I recommend approve. The evidence shows stale estimates decay quickly, and a daily review is a low-risk habit.',
+  'I support proceed. First, the owner still approves every send. Second, the action is specific and measurable.',
+  'I endorse a small pilot. It is strategically sound if the team tracks replies and recovered bookings.',
+];
 
-// 4. Vote on the responses
-const votes = agentResponses.map((response, i) =>
+const votes = responses.map((text, index) =>
   buildAgentVote(
-    `agent-${i}`,
-    formation.roles[i].title,
-    'council-1',
-    response
+    payload.agents[index].id,
+    payload.agents[index].title,
+    'example-council',
+    text
   )
 );
 
-const result = tallyVotes(votes);
-// result.outcome: "keep" | "refuse" | "deadlock"
-// result.method: "strong_consensus" | "quality_weighted" | "lead_fallback"
-
-// 5. Synthesize the verdict
-const synthesisPrompt = buildSynthesisPrompt(
-  formation,
-  question,
-  agentResponses.map((response, i) => ({
-    role: formation.roles[i].title,
-    response,
-  }))
-);
-const verdict = await yourLLMCall({ system: synthesisPrompt });
+console.log(tallyVotes(votes));
 ```
 
-## How Voting Works
+## How voting works
 
-Traditional multi-agent systems use majority vote. CouncilVerse uses **three-valued voting with quality-weighted scoring**:
+Each agent returns one of three outcomes:
 
-- **KEEP** -- agent supports the proposal
-- **REFUSE** -- agent opposes
-- **ABSTAIN** -- agent signals "outside my expertise" (prevents noise)
+- **KEEP**: supports the proposal
+- **REFUSE**: opposes the proposal
+- **ABSTAIN**: says "not my area" or lacks enough evidence
 
-Verdicts are determined by argument quality, not headcount:
-1. **Strong consensus** -- all active voters agree
-2. **Quality weighted** -- `argument_quality * confidence`, margin >= 15%
-3. **Lead fallback** -- deadlock triggers formation lead arbitration
+The final verdict is based on reasoning quality and confidence. A strong minority can beat a weak majority.
 
-Inspired by quality-weighted multi-agent voting research and tuned for practical decision reviews.
+## Embeds
 
-## Protocol Support
+`buildCouncilEmbedPayload()` returns a provider-neutral payload with:
 
-CouncilVerse formations are designed for interoperability:
+- the council preset
+- the public question
+- one system prompt per role
+- a synthesis prompt
 
-- **Google A2A** -- council presets map to Agent Card skills
-- **MCP** -- usable as MCP tool definitions
-- **Webhooks** -- HMAC-SHA256 signed verdict events
-- **Embed** -- iframe-friendly verdict widgets
+Use it for iframe widgets, MCP tools, Agent Card skills, or your own app surface.
 
-## Full Platform
+## Full platform
 
-These open-source packages power [Relay Deck](https://deck.relaylaunch.com), which adds:
+These packages power [Relay Deck](https://deck.relaylaunch.com), which adds:
 
-- Persistent verdict library with precedent search
-- Reasoning trace audit trail (Langfuse)
-- Embeddable verdict widgets
-- Durable debate state and owner approval checkpoints
-- Heterogeneous model assignment (different LLMs per agent)
-- EU AI Act compliance manifests
-- Use your own API keys, so no model traffic has to pass through RelayLaunch
+- saved verdicts and precedent search
+- reasoning traces
+- embeddable verdict widgets
+- durable debate state
+- owner approval checkpoints
+- model assignment per agent
+- compliance manifests
+- bring-your-own model keys
 
 [Try the playground](https://deck.relaylaunch.com/playground) | [Sign up for Relay Deck](https://deck.relaylaunch.com/signup)
 

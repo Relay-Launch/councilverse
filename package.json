@@ -5,7 +5,7 @@
   "engines": {
     "node": ">=20"
   },
-  "description": "CouncilVerse — Multi-agent AI council reasoning engine (monorepo)",
+  "description": "CouncilVerse - AI agents that disagree on purpose",
   "workspaces": [
     "packages/formations",
     "packages/voting",
@@ -13,6 +13,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "example:local": "node examples/local-verdict.mjs",
+    "pii:scan": "node scripts/check-pii-scan.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf packages/*/dist",
