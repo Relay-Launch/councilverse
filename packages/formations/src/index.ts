@@ -322,8 +322,20 @@ export interface CouncilEmbedPayload {
   methodology: string;
   question: string;
   defaultRounds: number;
+  summary: CouncilEmbedSummary;
   agents: CouncilEmbedAgent[];
   synthesisPrompt: string;
+}
+
+export interface CouncilEmbedSummary {
+  schemaVersion: "councilverse.embed-summary.v1";
+  formationId: FormationId;
+  formationName: string;
+  methodology: string;
+  question: string;
+  defaultRounds: number;
+  agentTitles: string[];
+  summaryHint: string;
 }
 
 const ANTI_SYCOPHANCY_RULES = [
@@ -351,15 +363,40 @@ export function buildSystemPrompt(formation: Formation, roleIndex: number): stri
   ].join("\n");
 }
 
-export function buildCouncilEmbedPayload(
-  formationId: FormationId,
-  question: string,
-): CouncilEmbedPayload {
+function normalizeEmbedQuestion(question: string): string {
   const trimmedQuestion = question.trim();
   if (!trimmedQuestion) {
     throw new Error("Embed question is required.");
   }
+  return trimmedQuestion;
+}
 
+export function buildCouncilEmbedSummary(
+  formationId: FormationId,
+  question: string,
+): CouncilEmbedSummary {
+  const trimmedQuestion = normalizeEmbedQuestion(question);
+  const formation = getFormation(formationId);
+  const agentTitles = formation.roles.map((role) => role.title);
+
+  return {
+    schemaVersion: "councilverse.embed-summary.v1",
+    formationId: formation.id,
+    formationName: formation.name,
+    methodology: formation.methodology,
+    question: trimmedQuestion,
+    defaultRounds: formation.defaultRounds,
+    agentTitles,
+    summaryHint: `${formation.name} uses ${formation.methodology} with ${agentTitles.length} roles: ${agentTitles.join(", ")}.`,
+  };
+}
+
+export function buildCouncilEmbedPayload(
+  formationId: FormationId,
+  question: string,
+): CouncilEmbedPayload {
+  const summary = buildCouncilEmbedSummary(formationId, question);
+  const trimmedQuestion = summary.question;
   const formation = getFormation(formationId);
   return {
     schemaVersion: "councilverse.embed.v1",
@@ -368,6 +405,7 @@ export function buildCouncilEmbedPayload(
     methodology: formation.methodology,
     question: trimmedQuestion,
     defaultRounds: formation.defaultRounds,
+    summary,
     agents: formation.roles.map((role, index) => ({
       id: `${formation.id}-agent-${index + 1}`,
       title: role.title,
