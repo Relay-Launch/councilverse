@@ -133,8 +133,11 @@ The final verdict is based on reasoning quality and confidence. A strong minorit
 
 - the council preset
 - the public question
+- a prompt-free `summary` for product previews
 - one system prompt per role
 - a synthesis prompt
+
+Use `buildCouncilEmbedSummary()` when a product surface only needs the council name, methodology, role titles, default rounds, and display hint.
 
 Use it for iframe widgets, MCP tools, Agent Card skills, or your own app surface.
 

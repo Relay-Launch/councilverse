@@ -37,10 +37,17 @@ Use the minimal embed API when you want a website, docs page, or product surface
 node --input-type=module -e "import { buildCouncilEmbedPayload } from '@relaylaunch/councilverse-formations'; console.log(JSON.stringify(buildCouncilEmbedPayload('technical-review', 'Should we ship the embeddable verdict widget?'), null, 2));"
 ```
 
+Use the summary helper when a product surface only needs the public council preview, not prompts.
+
+```bash
+node --input-type=module -e "import { buildCouncilEmbedSummary } from '@relaylaunch/councilverse-formations'; console.log(JSON.stringify(buildCouncilEmbedSummary('innovation-lab', 'Design a calmer team preview.'), null, 2));"
+```
+
 The payload includes:
 
 - `schemaVersion: "councilverse.embed.v1"`
 - formation metadata and default round count
+- `summary` with prompt-free role titles and a display hint
 - one provider-agnostic system prompt per role
 - a synthesis prompt ready for your own model gateway
 
