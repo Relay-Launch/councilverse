@@ -1,165 +1,263 @@
 <p align="center">
-  <strong>CouncilVerse</strong><br>
-  AI agents that disagree on purpose
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Relay-Launch/councilverse/main/docs/assets/councilverse-banner-dark.png">
+    <img alt="CouncilVerse Banner" src="https://raw.githubusercontent.com/Relay-Launch/councilverse/main/docs/assets/councilverse-banner-dark.png" width="100%">
+  </picture>
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@relaylaunch/councilverse-formations"><img src="https://img.shields.io/npm/v/@relaylaunch/councilverse-formations?label=formations&color=007AFF" alt="npm formations"></a>
-  <a href="https://www.npmjs.com/package/@relaylaunch/councilverse-voting"><img src="https://img.shields.io/npm/v/@relaylaunch/councilverse-voting?label=voting&color=007AFF" alt="npm voting"></a>
-  <a href="https://www.npmjs.com/package/create-councilverse"><img src="https://img.shields.io/npm/v/create-councilverse?label=create&color=007AFF" alt="npm create"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0F172A" alt="MIT License"></a>
+  <strong>CouncilVerse v2</strong><br>
+  The Sovereign Protocol for Multi-Agent Consensus, Fail-Closed Evaluation, and Cryptographic Governance.
+</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@relaylaunch/councilverse-voting"><img src="https://img.shields.io/npm/v/@relaylaunch/councilverse-voting?label=npm%20voting&color=D97706" alt="npm voting"></a>
+  <a href="https://www.npmjs.com/package/@relaylaunch/councilverse-formations"><img src="https://img.shields.io/npm/v/@relaylaunch/councilverse-formations?label=npm%20formations&color=0D9488" alt="npm formations"></a>
+  <a href="https://pypi.org/project/councilverse/"><img src="https://img.shields.io/badge/pypi-v2.0.0-3776AB?logo=pypi&logoColor=white" alt="PyPI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-78716C" alt="MIT License"></a>
+  <a href="https://github.com/Relay-Launch/councilverse/actions"><img src="https://img.shields.io/badge/tests-passing-10B981" alt="Build Status"></a>
 </p>
 
 ---
 
-Use CouncilVerse when one AI answer is too smooth.
+### Why Single-Agent AI and Naive Multi-Agent Swarms Fail
 
-It gives each AI agent a different job, forces them to argue from that job, then scores the verdict by reasoning quality instead of a simple headcount.
+When you ask a single frontier LLM a complex strategic question, the response is often **dangerously smooth**: persuasive, coherent, and blind to its own edge-case vulnerabilities.
 
-**In plain English:** you ask one question, several agents disagree, then you get a verdict you can audit.
+When teams attempt naive multi-agent debates ("Agent A debates Agent B"), they encounter four critical failure modes:
+1. **Majority Collusion & Sybil Consensus:** Multiple LLMs share overlapping training corpora, causing them to agree on shared hallucinations.
+2. **Silent Downgrade:** When an evaluation model times out, routers quietly fall back to cheaper, faster models—substituting a 70B reasoning model with an 8B SLM without logging the downgrade.
+3. **Floating-Point Non-Determinism:** Consensus scoring based on arbitrary floating-point weights produces flaky verdicts across different runtimes and architectures.
+4. **Epistemic Drift & Lack of Provenance:** Without cryptographic binding, there is no proof that Agent B actually reviewed Agent A's objection before casting a vote.
 
-## Run the local example
+**CouncilVerse v2 solves this.** It is the production-hardened open-source governance harness born inside the RelayLaunch autonomous fleet.
 
-No API key needed:
+---
+
+## The Three Sovereign Pillars of CouncilVerse v2
+
+```mermaid
+flowchart TD
+    subgraph Pillar1 ["Pillar 1: Conformal Triadic Voting (CTV v2)"]
+        JCS["RFC 8785 (JCS) Canonical Hashing"]
+        BPS["Integer Basis Points (0-10000 bps)"]
+        DAG["DAG Parent Linkage (vote_hashes)"]
+        Quorum["2-of-3 Quorum Threshold"]
+        Veto["Critical Dissent Fail-Closed Veto"]
+        JCS --> BPS --> DAG --> Quorum --> Veto
+    end
+
+    subgraph Pillar2 ["Pillar 2: D4 Fail-Closed Evaluation"]
+        ZeroRetry["num_retries: 0 on Evaluative Seats"]
+        AntiDown["Anti-Downgrade Invariant (No Fallbacks)"]
+        Breaker["D4.6 2-Abstain 15m Circuit Breaker"]
+        ZeroRetry --> AntiDown --> Breaker
+    end
+
+    subgraph Pillar3 ["Pillar 3: Tamper-Evident Ledger Chaining"]
+        Genesis["Genesis Anchor (0x00...00)"]
+        PrevHash["prev_hash = SHA-256(last_ndjson_line)"]
+        AuditVerify["O(1) Verification & Break Detection"]
+        Genesis --> PrevHash --> AuditVerify
+    end
+
+    Pillar1 --> Composite["Unified Multi-Agent Consensus Verdict"]
+    Pillar2 --> Composite
+    Pillar3 --> Composite
+```
+
+### 1. Conformal Triadic Voting (CTV v2)
+- **Mathematical Determinism:** Floating-point confidence values are banned in favor of integer **basis points (0–10000 bps)**.
+- **RFC 8785 (JCS) Hashing:** Vote objects are canonicalized and hashed via SHA-256, creating tamper-evident `vote_hash` identifiers.
+- **DAG Parent Links:** Every vote explicitly references its predecessor vote hashes (`parent_vote_hashes`), enforcing a verifiable deliberation graph.
+- **Critical Dissent Veto:** A minority agent flagging `critical_dissent = true` triggers an immediate fail-closed `CRITICAL_DISSENT_VETO`, stopping harmful actions even if a 2-of-3 majority approved.
+
+### 2. D4 Fail-Closed Evaluative Routing
+- **Zero Retries Invariant (`num_retries: 0`):** Evaluative seats (judges, adversarial red-teamers) must never retry on a hang. A failed judge is recoverable; a hanging judge that stalls the fleet for 600 seconds is catastrophic.
+- **Anti-Downgrade Enforcement:** Evaluative seats are forbidden from having fallback routes. If a 70B reasoning judge is unreachable, it must fail cleanly to `ABSTAIN`, never be quietly answered by a cheaper model.
+- **D4.6 Circuit Breaker:** Two consecutive `ABSTAIN` verdicts trip a 15-minute circuit breaker, logging a quiet `digest` state to prevent infinite retry loops.
+
+### 3. Cryptographic Tamper-Evident Ledgers
+- Every agent event, vote, and dispatch in CouncilVerse is written to an append-only NDJSON stream.
+- Each row carries `prev_hash = SHA256(previous_raw_line)`.
+- If an attacker, rogue agent, or accidental merge script edits or deletes a historical verdict, the ledger chain breaks immediately at $O(1)$ verification time.
+
+---
+
+## Quickstart (TypeScript / Node.js)
+
+### Installation
 
 ```bash
-npm install
-npm run build
-npm run example:local
+npm install @relaylaunch/councilverse-voting @relaylaunch/councilverse-formations
 ```
 
-Expected shape:
-
-```text
-Council: Strategy Room
-Question: Should a repair shop follow up on stale estimates every morning?
-Verdict: keep
-Method: strong_consensus
-Agents: Observer, Orienter, Strategist
-```
-
-The example uses canned responses so you can prove the package works before connecting any model provider.
-
-## Start a real council project
-
-```bash
-npx create-councilverse my-council
-cd my-council
-npm install
-```
-
-Add your model key:
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-Run a council:
-
-```bash
-npm run debate -- strategy-room "Should we expand into Europe?"
-```
-
-## Packages
-
-| Package | What it does | Install |
-|---------|--------------|---------|
-| [`@relaylaunch/councilverse-formations`](packages/formations) | 15 ready-made council presets with roles and prompts | `npm i @relaylaunch/councilverse-formations` |
-| [`@relaylaunch/councilverse-voting`](packages/voting) | Turns agent responses into keep, refuse, or abstain verdicts | `npm i @relaylaunch/councilverse-voting` |
-| [`create-councilverse`](packages/create-councilverse) | Creates a working starter project | `npx create-councilverse` |
-
-## What the presets are for
-
-| ID | Use it when you need |
-|----|----------------------|
-| strategy-room | A practical business strategy call |
-| tribunal | A hard yes/no challenge with a case for and against |
-| innovation-lab | New ideas without skipping reality checks |
-| risk-council | Risk, downside, and mitigation planning |
-| due-diligence | Investment, acquisition, or vendor review |
-| ethics-board | Human impact and rights review |
-| growth-council | Acquisition, activation, retention, referral, and revenue |
-| technical-review | Architecture and implementation tradeoffs |
-| market-intelligence | Competitive pressure and market structure |
-| crisis-response | Incident response and fast triage |
-| investment-committee | Investment quality and downside review |
-| quality-assurance | Process defects and improvement plans |
-| research-council | Evidence review and hypothesis testing |
-| competitive-analysis | Competitor moves and game theory |
-| policy-council | Regulatory or policy impact review |
-
-## Use the libraries directly
+### Running a CTV Deliberation
 
 ```typescript
-import { buildCouncilEmbedPayload } from '@relaylaunch/councilverse-formations';
-import { buildAgentVote, tallyVotes } from '@relaylaunch/councilverse-voting';
+import { tallyCtvVotes, canonicalVoteHash, type CtvVote } from '@relaylaunch/councilverse-voting';
 
-const payload = buildCouncilEmbedPayload(
-  'strategy-room',
-  'Should a repair shop follow up on stale estimates every morning?'
-);
+// 1. Agent 1 proposes an action
+const voteClaude: CtvVote = {
+  voter_id: 'claude-agentic-lead',
+  lane: 'claude',
+  topic: 'api-rate-limit-tier',
+  decision_class: 'INFRA_ROUTING',
+  vote: 'AFFIRMATIVE',
+  confidence_bps: 9800, // 98.00%
+  nonconformity_bps: 800, // 8.00%
+  parent_vote_hashes: [],
+  critical_dissent: false,
+  justification: 'Enforcing zero retries on evaluative seats eliminates cascade hangs.',
+};
+const hashClaude = canonicalVoteHash(voteClaude);
 
-const responses = [
-  'I recommend approve. The evidence shows stale estimates decay quickly, and a daily review is a low-risk habit.',
-  'I support proceed. First, the owner still approves every send. Second, the action is specific and measurable.',
-  'I endorse a small pilot. It is strategically sound if the team tracks replies and recovered bookings.',
-];
+// 2. Agent 2 reviews and references Agent 1's vote hash
+const voteGemini: CtvVote = {
+  voter_id: 'gemini-chief-strategist',
+  lane: 'gemini',
+  topic: 'api-rate-limit-tier',
+  decision_class: 'INFRA_ROUTING',
+  vote: 'AFFIRMATIVE',
+  confidence_bps: 9500, // 95.00%
+  nonconformity_bps: 1100,
+  parent_vote_hashes: [hashClaude], // DAG link
+  critical_dissent: false,
+  justification: 'Concur. A failed judge is recoverable; a fake downgraded verdict is not.',
+};
 
-const votes = responses.map((text, index) =>
-  buildAgentVote(
-    payload.agents[index].id,
-    payload.agents[index].title,
-    'example-council',
-    text
-  )
-);
+// 3. Agent 3 detects an anomaly and casts a critical dissent veto
+const voteHermes: CtvVote = {
+  voter_id: 'hermes-telemetry-observer',
+  lane: 'hermes',
+  topic: 'api-rate-limit-tier',
+  decision_class: 'INFRA_ROUTING',
+  vote: 'NEGATIVE',
+  confidence_bps: 9200,
+  nonconformity_bps: 3500,
+  parent_vote_hashes: [hashClaude],
+  critical_dissent: true, // VETO: Halts execution immediately!
+  justification: 'Upstream gateway buffer pool is saturated; executing now causes packet drop.',
+};
 
-console.log(tallyVotes(votes));
+// 4. Compute consensus
+const result = tallyCtvVotes([voteClaude, voteGemini, voteHermes]);
+console.log(result.outcome); 
+// Output: 'CRITICAL_DISSENT_VETO' (Fail-closed safety triggered!)
 ```
 
-## How voting works
+### Verifying a Tamper-Evident Ledger
 
-Each agent returns one of three outcomes:
+```typescript
+import { createChainedRow, verifyLedgerChain } from '@relaylaunch/councilverse-voting';
 
-- **KEEP**: supports the proposal
-- **REFUSE**: opposes the proposal
-- **ABSTAIN**: says "not my area" or lacks enough evidence
+// Build chained lines
+const line1 = JSON.stringify(createChainedRow({ id: '001', event: 'PROPOSAL' }, null));
+const line2 = JSON.stringify(createChainedRow({ id: '002', event: 'VOTE_CAST' }, line1));
 
-The final verdict is based on reasoning quality and confidence. A strong minority can beat a weak majority.
+// Verify integrity
+const audit = verifyLedgerChain([line1, line2]);
+console.log(audit.valid); // true
+console.log(audit.chained_rows); // 2
+```
 
-## Embeds
+---
 
-`buildCouncilEmbedPayload()` returns a provider-neutral payload with:
+## Quickstart (Python SDK)
 
-- the council preset
-- the public question
-- a prompt-free `summary` for product previews
-- one system prompt per role
-- a synthesis prompt
+```python
+from councilverse import CtvVote, tally_ctv_votes, canonical_vote_hash
 
-Use `buildCouncilEmbedSummary()` when a product surface only needs the council name, methodology, role titles, default rounds, and display hint.
+v1 = CtvVote(
+    voter_id="agent-claude",
+    lane="claude",
+    topic="d4-governance",
+    decision_class="GOVERNANCE",
+    vote="AFFIRMATIVE",
+    confidence_bps=9500,
+    nonconformity_bps=1200,
+    parent_vote_hashes=[],
+    critical_dissent=False,
+    justification="Approved architecture."
+)
 
-Use it for iframe widgets, MCP tools, Agent Card skills, or your own app surface.
+v2 = CtvVote(
+    voter_id="agent-gemini",
+    lane="gemini",
+    topic="d4-governance",
+    decision_class="GOVERNANCE",
+    vote="AFFIRMATIVE",
+    confidence_bps=9200,
+    nonconformity_bps=1400,
+    parent_vote_hashes=[canonical_vote_hash(v1)],
+    critical_dissent=False,
+    justification="Concur with zero-retries proof."
+)
 
-## Full platform
+result = tally_ctv_votes([v1, v2], required_quorum=2)
+print("Outcome:", result["outcome"])  # CERTIFIED
+print("Quorum Met:", result["quorum_met"])  # True
+```
 
-These packages power [Relay Deck](https://deck.relaylaunch.com), which adds:
+---
 
-- saved verdicts and precedent search
-- reasoning traces
-- embeddable verdict widgets
-- durable debate state
-- owner approval checkpoints
-- model assignment per agent
-- compliance manifests
-- bring-your-own model keys
+## The 15 Battle-Tested Council Rooms
 
-[Try the playground](https://deck.relaylaunch.com/playground) | [Sign up for Relay Deck](https://deck.relaylaunch.com/signup)
+CouncilVerse provides 15 pre-built council formations with specialized roles, prompt architectures, and dissent dynamics:
 
-## Contributing
+| Preset ID | Methodology | Best Used For |
+|---|---|---|
+| `strategy-room` | OODA Loop & Second-Order Effects | Strategic roadmaps, resource pivots, pricing changes |
+| `tribunal` | Adversarial Prosecution & Defense | High-stakes code deploys, breaking refactors, architecture locks |
+| `risk-council` | Premortem & Black Swan Analysis | Downside evaluation, security reviews, runway protection |
+| `technical-review` | Formal Tradeoff & Scale Analysis | Database schemas, RPC protocols, caching layers |
+| `crisis-response` | Triage & Blast-Radius Containment | Outages, API rate limits, production regression hotfixes |
+| `due-diligence` | Fact-Check & Citation Audit | Claims verification, vendor evaluations, compliance audits |
+| `innovation-lab` | Lateral Thinking & Reality Checks | Green-field product concepts, feature invention |
+| `growth-council` | Pirate Metrics (AARRR) | Conversion funnels, retention loops, activation velocity |
+| `ethics-board` | AI Alignment & PII Boundaries | Data privacy, customer trust, tenant boundary compliance |
+| `market-intelligence` | Porter's Five Forces & Moat Analysis | Competitor responses, pricing defenses, category positioning |
+| `quality-assurance` | Failure Mode & Effects Analysis (FMEA) | Edge-case fuzzing, contract tests, state machines |
+| `research-council` | Hypothesis Testing & Empirical Scans | Model bake-offs, latency benchmarks, academic paper evaluation |
+| `policy-council` | Regulatory & Governance Compliance | EU AI Act, SLA conformance, terms of service adherence |
+| `investment-committee` | Unit Economics & Capital Allocation | Infrastructure COGS, token spend optimization, ROI auditing |
+| `competitive-analysis` | Game Theory & Counter-Moves | Feature parity audits, attack-vector mitigation |
 
-PRs welcome. Please open an issue first for major changes.
+---
 
-## License
+## Running the Examples
 
-MIT -- [RelayLaunch LLC](https://relaylaunch.com)
+Run the bundled examples out of the box:
+
+```bash
+# Conformal Triadic Voting Demo
+node examples/ctv-conformal-debate.mjs
+
+# D4 Fail-Closed Router Validation
+node examples/d4-failclosed-router.mjs
+
+# Tamper-Evident Ledger Integrity Audit
+node examples/tamper-evident-ledger.mjs
+
+# Python SDK Verification
+python examples/python_ctv_demo.py
+```
+
+---
+
+## Contributing & Development
+
+We welcome contributions from researchers, distributed systems engineers, and AI agent builders.
+
+```bash
+git clone https://github.com/Relay-Launch/councilverse.git
+cd councilverse
+npm install
+npm test
+```
+
+## Commercial Provenance
+
+CouncilVerse is open-sourced under the MIT license by [RelayLaunch LLC](https://relaylaunch.com) ("Every part of your business. One AI."). It represents the core deliberative spine powering Relay Deck and the Relay Recovery Engine.
+
+**License:** MIT © RelayLaunch LLC
